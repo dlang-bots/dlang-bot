@@ -83,6 +83,7 @@ void startFakeAPIServer()
     auto fakeAPIServerURL = "http://" ~ fakeSettings.bindAddresses[0] ~ ":"
                                       ~ fakeSettings.port.to!string;
 
+    githubURL = fakeAPIServerURL ~ "/github.com";
     githubAPIURL = fakeAPIServerURL ~ "/github";
     trelloAPIURL = fakeAPIServerURL ~ "/trello";
     buildkiteAPIURL = fakeAPIServerURL ~ "/buildkite";
@@ -156,9 +157,10 @@ auto payloadServer(scope HTTPServerRequest req, scope HTTPServerResponse res)
     {
         logInfo("reading payload: %s", filePath);
         auto payload = filePath.readText;
-        if (req.requestURL.startsWith("/github", "/trello", "/buildkite", "/hcloud"))
+        if (req.requestURL.startsWith("/github/", "/trello/", "/buildkite/", "/hcloud/"))
         {
             auto payloadJson = payload.parseJsonString;
+            replaceAPIReferences("https://github.com", githubURL, payloadJson);
             replaceAPIReferences("https://api.github.com", githubAPIURL, payloadJson);
             replaceAPIReferences("https://api.trello.com", trelloAPIURL, payloadJson);
             replaceAPIReferences("https://api.buildkite.com/v2", buildkiteAPIURL, payloadJson);
@@ -175,6 +177,11 @@ auto payloadServer(scope HTTPServerRequest req, scope HTTPServerResponse res)
     }
 }
 
+void replaceAPIReferences(string official, string local, ref string str)
+{
+    str = str.replace(official, local);
+}
+
 void replaceAPIReferences(string official, string local, ref Json json)
 {
     void recursiveReplace(ref Json j)
@@ -188,7 +195,10 @@ void replaceAPIReferences(string official, string local, ref Json json)
         case Json.Type.string:
             string v = j.get!string;
             if (v.countUntil(official) >= 0)
-                j = v.replace(official, local);
+            {
+                replaceAPIReferences(official, local, v);
+                j = v;
+            }
             break;
         default:
             break;
@@ -294,19 +304,23 @@ void postGitHubHook(string payload, string eventType = "pull_request",
     auto req = requestHTTP(ghTestHookURL, (scope req) {
         req.method = HTTPMethod.POST;
 
-        auto payload = payload.readText.parseJsonString;
+        auto payload = payload.readText;
 
         // localize accessed URLs
+        replaceAPIReferences("https://github.com", githubURL, payload);
         replaceAPIReferences("https://api.github.com", githubAPIURL, payload);
 
         req.headers["X-GitHub-Event"] = eventType;
 
         if (postprocess !is null)
-            postprocess(payload, req);
+        {
+            auto payloadJson = payload.parseJsonString;
+            postprocess(payloadJson, req);
+            payload = payloadJson.toString;
+        }
 
-        auto respStr = payload.toString;
-        req.headers["X-Hub-Signature"] = getSignature(respStr);
-        req.writeBody(cast(ubyte[]) respStr);
+        req.headers["X-Hub-Signature"] = getSignature(payload);
+        req.writeBody(cast(ubyte[]) payload);
     });
     assert(req.statusCode == 200,
         "Request failed with status %d. Response body:\n\n%s"

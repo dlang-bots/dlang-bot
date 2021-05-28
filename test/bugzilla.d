@@ -221,7 +221,7 @@ unittest
             assert("keywords" in req.json["params"][0]);
 
             auto comment = req.json["params"][0]["comment"]["body"].get!string;
-            enum expected = q"EOF
+            auto expected = q"EOF
 @MartinNowak created dlang/dmd pull request #6359 "fix Issue 16794 - dmd not working on Ubuntu 16.10" fixing this issue:
 
 - fix Issue 16794 - dmd not working on Ubuntu 16.10
@@ -231,7 +231,7 @@ unittest
   - also see https://github.com/dlang/installer/pull/207
 
 https://github.com/dlang/dmd/pull/6359
-EOF".chomp;
+EOF".chomp.replace("https://github.com/dlang/installer", githubURL ~ "/dlang/installer"); // compensate for API reference rewriting
             assert(comment == expected, comment);
 
             auto j = Json(["error" : Json(null), "result" : Json.emptyObject]);

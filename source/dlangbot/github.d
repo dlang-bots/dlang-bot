@@ -51,6 +51,13 @@ string markdownEscape(string desc)
     return app.data;
 }
 
+string manualChangelogURL(string repoSlug)
+{
+    return "https://github.com/%s/blob/master/%s".format(
+        repoSlug, repoSlug == "dlang/dlang.org" ? "language-changelog" : "changelog",
+    );
+}
+
 string formatComment(in ref PullRequest pr, in IssueRef[] refs, in Issue[] descs, in UserMessage[] msgs)
 {
     import std.array : appender;
@@ -100,8 +107,8 @@ If you have addressed all reviews or aren't sure how to proceed, don't hesitate 
             app.formattedWrite(
 `Your PR doesn't reference any Bugzilla issue.
 
-If your PR contains non-trivial changes, please [reference a Bugzilla issue](https://github.com/dlang-bots/dlang-bot#automated-references) or create a [manual changelog](https://github.com/%s/blob/master/%s).
-`, pr.repoSlug, pr.repoSlug == "dlang/dlang.org" ? "language-changelog" : "changelog");
+If your PR contains non-trivial changes, please [reference a Bugzilla issue](https://github.com/dlang-bots/dlang-bot#automated-references) or create a [manual changelog](%s).
+`, manualChangelogURL(pr.repoSlug));
     }
 
     if (msgs.length)

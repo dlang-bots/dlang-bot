@@ -1,5 +1,6 @@
 module dlangbot.github_api;
 
+shared string githubURL = "https://github.com";
 shared string githubAPIURL = "https://api.github.com";
 shared string githubAuth, githubHookSecret;
 
@@ -241,6 +242,7 @@ struct PullRequest
     @name("created_at") SysTime createdAt;
     @name("updated_at") SysTime updatedAt;
     @name("closed_at") Nullable!SysTime closedAt;
+    @name("diff_url") string diffURL;
     bool locked;
     // TODO: update payloads
     //@name("maintainer_can_modify") bool maintainerCanModify;

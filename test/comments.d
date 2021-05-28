@@ -131,6 +131,7 @@ unittest
 8573,"A simpler Phobos function that returns the index of the mix or max item","NEW","---","enhancement","P2",`);
         },
         "/github/repos/dlang/phobos/issues/4921/labels",
+        "/github.com/dlang/phobos/pull/4921.diff",
         "/github/repos/dlang/phobos/issues/4921/labels", (ref Json j) {
             j = Json.emptyArray;
         },
@@ -169,6 +170,7 @@ unittest
 8574,"Some Bug","NEW","---","normal","P2",`);
         },
         "/github/repos/dlang/phobos/issues/4921/labels",
+        "/github.com/dlang/phobos/pull/4921.diff",
         "/github/repos/dlang/phobos/issues/4921/labels", (ref Json j) {
             j = Json.emptyArray;
         },
@@ -200,6 +202,7 @@ unittest
          "/github/repos/dlang/phobos/issues/4921/comments",
         "/bugzilla/buglist.cgi?bug_id=8573&ctype=csv&columnlist=short_desc,bug_status,resolution,bug_severity,priority,keywords",
         "/github/repos/dlang/phobos/issues/4921/labels",
+        "/github.com/dlang/phobos/pull/4921.diff",
         "/github/repos/dlang/phobos/issues/4921/labels", (ref Json j) {
             j[0]["name"] = "Enhancement";
         },
@@ -557,4 +560,90 @@ unittest
     assert("a`b".markdownEscape == "a\\`b");
     assert("a\\b".markdownEscape == "a\\\\b");
     assert("a+b".markdownEscape == r"a\+b");
+}
+
+@("enhancement-with-changelog")
+unittest
+{
+    setAPIExpectations(
+        "/github/repos/dlang/phobos/pulls/4921/commits", (ref Json j) {
+            j[0]["commit"]["message"] = "Fix Issue 8573";
+        },
+         "/github/repos/dlang/phobos/issues/4921/comments",
+        "/bugzilla/buglist.cgi?bug_id=8573&ctype=csv&columnlist=short_desc,bug_status,resolution,bug_severity,priority,keywords",
+        (scope HTTPServerRequest req, scope HTTPServerResponse res){
+            res.writeBody(
+`bug_id,"short_desc","bug_status","resolution","bug_severity","priority","keywords"
+8573,"A simpler Phobos function that returns the index of the mix or max item","NEW","---","enhancement","P2",`);
+        },
+        "/github/repos/dlang/phobos/issues/4921/labels",
+        "/github.com/dlang/phobos/pull/4921.diff", (scope HTTPServerRequest req, scope HTTPServerResponse res){
+            res.writeBody(q"EOF
+diff --git a/changelog/bla-bla.dd b/changelog/bla-bla.dd
+new file mode 100644
+index 00000000000..0147f501f08
+--- /dev/null
++++ b/changelog/bla-bla.dd
+@@ -0,0 +1,1 @@
++bla bla
+EOF");
+        },
+        "/github/repos/dlang/phobos/issues/4921/labels", (ref Json j) {
+            j = Json.emptyArray;
+        },
+        "/github/orgs/dlang/public_members?per_page=100",
+        "/github/repos/dlang/phobos/issues/comments/262784442",
+        (scope HTTPServerRequest req, scope HTTPServerResponse res){
+            assert(req.method == HTTPMethod.PATCH);
+            assert(!req.json["body"].get!string.canFind("Pull requests implementing enhancements should include"));
+            res.writeVoidBody;
+        },
+        "/github/repos/dlang/phobos/issues/4921/labels",
+        (scope HTTPServerRequest req, scope HTTPServerResponse res){
+            assert(req.json[].equal(["Enhancement"]));
+        },
+        "/trello/1/search?query=name:%22Issue%208573%22&"~trelloAuth,
+        "/bugzilla/jsonrpc.cgi", // Bug.comments
+        "/bugzilla/jsonrpc.cgi", // Bug.update
+    );
+
+    postGitHubHook("dlang_phobos_synchronize_4921.json");
+}
+
+@("enhancement-with-changelog")
+unittest
+{
+    setAPIExpectations(
+        "/github/repos/dlang/phobos/pulls/4921/commits", (ref Json j) {
+            j[0]["commit"]["message"] = "Fix Issue 8573";
+        },
+         "/github/repos/dlang/phobos/issues/4921/comments",
+        "/bugzilla/buglist.cgi?bug_id=8573&ctype=csv&columnlist=short_desc,bug_status,resolution,bug_severity,priority,keywords",
+        (scope HTTPServerRequest req, scope HTTPServerResponse res){
+            res.writeBody(
+`bug_id,"short_desc","bug_status","resolution","bug_severity","priority","keywords"
+8573,"A simpler Phobos function that returns the index of the mix or max item","NEW","---","enhancement","P2",`);
+        },
+        "/github/repos/dlang/phobos/issues/4921/labels",
+        "/github.com/dlang/phobos/pull/4921.diff",
+        "/github/repos/dlang/phobos/issues/4921/labels", (ref Json j) {
+            j = Json.emptyArray;
+        },
+        "/github/orgs/dlang/public_members?per_page=100",
+        "/github/repos/dlang/phobos/issues/comments/262784442",
+        (scope HTTPServerRequest req, scope HTTPServerResponse res){
+            assert(req.method == HTTPMethod.PATCH);
+            assert(req.json["body"].get!string.canFind("Pull requests implementing enhancements should include"));
+            res.writeVoidBody;
+        },
+        "/github/repos/dlang/phobos/issues/4921/labels",
+        (scope HTTPServerRequest req, scope HTTPServerResponse res){
+            assert(req.json[].equal(["Enhancement"]));
+        },
+        "/trello/1/search?query=name:%22Issue%208573%22&"~trelloAuth,
+        "/bugzilla/jsonrpc.cgi", // Bug.comments
+        "/bugzilla/jsonrpc.cgi", // Bug.update
+    );
+
+    postGitHubHook("dlang_phobos_synchronize_4921.json");
 }

@@ -7,7 +7,7 @@ import dlangbot.trello;
 import dlangbot.utils;
 
 public import dlangbot.bugzilla : bugzillaLogin, bugzillaPassword, bugzillaURL;
-public import dlangbot.github_api   : githubAPIURL, githubAuth, githubHookSecret;
+public import dlangbot.github_api   : githubURL, githubAPIURL, githubAuth, githubHookSecret;
 public import dlangbot.trello   : trelloAPIURL, trelloAuth, trelloSecret;
 public import dlangbot.twitter : oAuth, tweet, twitterURL, twitterEnabled;
 public import dlangbot.buildkite : buildkiteAPIURL, buildkiteAuth, buildkiteHookSecret, dlangbotAgentAuth;

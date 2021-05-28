@@ -1,7 +1,7 @@
 module dlangbot.warnings;
 
 import dlangbot.bugzilla : Issue, IssueRef;
-import dlangbot.github : PullRequest;
+import dlangbot.github : PullRequest, manualChangelogURL;
 
 import std.algorithm;
 
@@ -14,9 +14,26 @@ struct UserMessage
 }
 
 
-// check diff length
-void checkDiff(in ref PullRequest pr, ref UserMessage[] msgs)
+void checkEnhancementChangelog(in ref PullRequest pr, ref UserMessage[] msgs,
+        in Issue[] bugzillaIssues, in IssueRef[] refs)
 {
+    import dlangbot.utils : request, expectOK;
+    import vibe.stream.operations : readAllUTF8;
+    import std.format : format;
+
+    if (bugzillaIssues.any!(i => i.status.among("NEW", "ASSIGNED", "REOPENED") &&
+                                 i.severity == "enhancement" &&
+                                 refs.canFind!(r => r.id == i.id && r.fixed)))
+    {
+        auto diff = request(pr.diffURL).expectOK.bodyReader.readAllUTF8;
+        if (!diff.canFind("\n+++ b/changelog/"))
+        {
+            msgs ~= UserMessage(UserMessage.Type.Warning,
+                "Pull requests implementing enhancements should include a [full changelog entry](%s)."
+                .format(manualChangelogURL(pr.repoSlug))
+            );
+        }
+    }
 }
 
 
@@ -55,8 +72,8 @@ git rebase --onto upstream/stable upstream/master
 UserMessage[] checkForWarnings(in PullRequest pr, in Issue[] bugzillaIssues, in IssueRef[] refs)
 {
     UserMessage[] msgs;
-    pr.checkDiff(msgs);
     pr.checkBugzilla(msgs, bugzillaIssues, refs);
+    pr.checkEnhancementChangelog(msgs, bugzillaIssues, refs);
     return msgs;
 }
 
