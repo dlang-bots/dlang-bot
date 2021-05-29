@@ -185,13 +185,10 @@ Of course, other issue types can be detected as well:
 Using the Dlang-Bot for your project
 ------------------------------------
 
-The Dlang-Bot is run on Heroku and [deploying your fork](https://tour.dlang.org/tour/en/vibed/deploy-on-heroku) should be pretty straightforward. Just remember to set all environment variables.
-Alternatively feel free to ping and we can add your project to our hosted Dlang-Bot.
-The GitHub hook for your project should look roughly like this:
+@dlang-bot responds to GitHub events sent to its webhook.
+To use the bot in your project, configure a webhook with the following settings:
 
-![image](https://user-images.githubusercontent.com/4370550/27859584-8d252c62-6179-11e7-84fe-e2def14f56d5.png)
-
-- Payload URL: `https://dlang-bot.herokuapp.com/github_hook` (or your own)
+- Payload URL: `https://bot.dlang.io/github_hook` (or your own instance)
 - Content type: `application/json`
 - Select at least these events (or all): 
   - Label
@@ -201,7 +198,7 @@ The GitHub hook for your project should look roughly like this:
   - Status
 
 For `auto-merge`:
-- an respective label needs to be added (at the `dlang` repositories `#d3d3d3` is used as a label color)
+- a respective label needs to be added (at the `dlang` repositories `#d3d3d3` is used as a label color)
 - `@dlang-bot` (or your own bot) needs to have write access to the GitHub repo (GitHub's protected branches are ideal for this)
 
 For example, `dlang/phobos` is configured as follows:

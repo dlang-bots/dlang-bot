@@ -32,7 +32,7 @@ bool runBugzillaUpdates = true;
 Duration timeBetweenFullPRChecks = 1.minutes; // this should never be larger 30 mins on heroku
 Throttler!(typeof(&searchForAutoMergePrs)) prThrottler;
 
-enum trelloHookURL = "https://dlang-bot.herokuapp.com/trello_hook";
+enum trelloHookURL = "https://bot.dlang.io/trello_hook";
 
 void startServer(HTTPServerSettings settings)
 {
