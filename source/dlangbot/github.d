@@ -335,9 +335,9 @@ void searchForAutoMergePrs(string repoSlug)
 }
 
 /**
-Allows contributors to use [<label>] messages in the title.
-If they are part of a pre-defined, allowed list, the bot will add the
-respective label.
+Allows contributors to use [<label>] and [-<label>] messages in the title.
+If they are part of a pre-defined, allowed list, the bot will add or
+remove the respective label.
 */
 void checkTitleForLabels(in ref PullRequest pr)
 {
@@ -347,10 +347,16 @@ void checkTitleForLabels(in ref PullRequest pr)
 
     static labelRe = regex(`\[(.*)\]`);
     string[] userLabels;
+    string[] removeLabels;
     foreach (m; pr.title.matchAll(labelRe))
     {
         foreach (el; m[1].splitter(","))
-            userLabels ~= el;
+        {
+            if (el.length > 0 && el[0] == '-')
+                removeLabels ~= el[1 .. $];
+            else
+                userLabels ~= el;
+        }
     }
 
     const string[string] userLabelsMap = [
@@ -369,4 +375,17 @@ void checkTitleForLabels(in ref PullRequest pr)
 
     if (mappedLabels.length)
         pr.addLabels(mappedLabels);
+
+    auto mappedRemoveLabels = removeLabels
+                            .sort()
+                            .uniq
+                            .map!strip
+                            .map!toLower
+                            .filter!(l => l in userLabelsMap)
+                            .map!(l => userLabelsMap[l])
+                            .array;
+
+    if (mappedRemoveLabels.length)
+        checkAndRemoveLabels(pr.labels, pr, mappedRemoveLabels);
+
 }
