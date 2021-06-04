@@ -32,7 +32,11 @@ fix Issue 16582 - ParameterDefaults fails w/ scope parameter
 ```
 
 The Dlang-Bot will do all the hard work of linking and referencing
-between Bugzilla, GitHub and Trello do for you.
+between Bugzilla, GitHub and Trello for you.
+
+Be careful to not put extra characters next to the issue number, e.g. `fix Issue 16582: blah`
+would not work because of the `:` character. If in doubt, follow the format of the
+example above.
 
 ### GitHub
 
